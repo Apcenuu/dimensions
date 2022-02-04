@@ -23,8 +23,7 @@ class HomeController extends AbstractController
         $apiUrl = $this->getParameter('app.api_url');
         $apiKey = $this->getParameter('app.api_key');
         $apiService = new ApiService($apiUrl, $apiKey);
-        $orderContainer = $apiService->getOrderById($id);
-        $order = array_shift($orderContainer->orders);
+        $order = $apiService->getOrderById($id);
 
         if ($order == null) {
 
@@ -40,7 +39,7 @@ class HomeController extends AbstractController
 
         foreach ($dimensions as $dimension) {
             if ($dimension) {
-                $response = $apiService->setDimensions($orderContainer, $dimension);
+                $response = $apiService->setDimensions($order, $dimension);
             }
         }
         
