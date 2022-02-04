@@ -34,6 +34,7 @@ class ApiService
         $order = array_shift($orderContainer->orders);
         $request = new OrdersEditRequest();
         $request->by = 'id';
+        dump($order);die;
         $request->site = $order->site;
 
         $order->length = $dimensionsArray[0];
