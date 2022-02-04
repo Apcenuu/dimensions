@@ -25,13 +25,12 @@ class ApiService
         ];
         $request->filter = $filter;
         $order = $this->client->orders->list($request);
-
+        dump($order);die;
         return $order;
     }
 
     public function setDimensions($orderContainer, $dimensionsArray)
     {
-        dump($orderContainer->orders);die;
         $order = array_shift($orderContainer->orders);
         $request = new OrdersEditRequest();
         $request->by = 'id';
