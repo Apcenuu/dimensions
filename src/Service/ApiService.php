@@ -31,10 +31,10 @@ class ApiService
 
     public function setDimensions($orderContainer, $dimensionsArray)
     {
+        dump($orderContainer->orders);die;
         $order = array_shift($orderContainer->orders);
         $request = new OrdersEditRequest();
         $request->by = 'id';
-        dump($order);die;
         $request->site = $order->site;
 
         $order->length = $dimensionsArray[0];
