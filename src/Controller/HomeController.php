@@ -4,6 +4,7 @@ namespace App\Controller;
 
 
 use App\Service\ApiService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,7 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class HomeController extends AbstractController
 {
-    public function index(Request $request)
+    public function index(Request $request, LoggerInterface $logger)
     {
         $id = $request->get('id');
 
@@ -25,6 +26,8 @@ class HomeController extends AbstractController
         $apiService = new ApiService($apiUrl, $apiKey);
         $order = $apiService->getOrderById($id);
 
+//        dump($order);die;
+
         if ($order == null) {
 
             return new Response('Order is null');
@@ -34,7 +37,7 @@ class HomeController extends AbstractController
 
         $dimensions = [];
         foreach ($items as $item) {
-            $dimensions[$item->id] = $this->parseDimensions($item->offer->displayName);
+            $dimensions[$item->id] = $this->parseDimensions($item->offer->displayName, $logger);
         }
 
         foreach ($dimensions as $dimension) {
@@ -42,16 +45,25 @@ class HomeController extends AbstractController
                 $response = $apiService->setDimensions($order, $dimension);
             }
         }
-        
-        return new Response($response->success);
+
+        if (isset($response->success)) {
+            return new Response($response->success);
+        }
+
+        return new Response('No dimensions');
     }
 
-    private function parseDimensions($productName)
+    private function parseDimensions($productName, LoggerInterface $logger)
     {
         $res = explode('(', $productName);
-        $res = end($res);
-        $dimensions = explode('x', $res);
+        $prodName = array_shift($res);
+        $dimensionsString = array_shift($res);
+
+        $dimensions = explode('x', $dimensionsString);
+
+
         if (count($dimensions) < 3) {
+            $logger->log('error', 'Dimensions not parsed in product name' . $productName, $dimensions);
             return false;
         }
 
