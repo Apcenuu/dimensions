@@ -38,6 +38,10 @@ class HomeController extends AbstractController
             $itemDimensions[$item->id] = $this->parseDimensions($item->offer->displayName, $logger);
         }
 
+        $itemDimensions = array_filter($itemDimensions, function ($item) {
+            return $item;
+        });
+
         $lastItemDimensions = end($itemDimensions);
 
         foreach ($lastItemDimensions as $dimension) {
