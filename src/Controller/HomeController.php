@@ -44,10 +44,8 @@ class HomeController extends AbstractController
 
         $lastItemDimensions = end($itemDimensions);
 
-        foreach ($lastItemDimensions as $dimension) {
-            if ($dimension) {
-                $response = $apiService->setDimensions($order, $dimension);
-            }
+        if (count($lastItemDimensions)) {
+            $response = $apiService->setDimensions($order, $lastItemDimensions);
         }
 
         if (isset($response->success)) {
