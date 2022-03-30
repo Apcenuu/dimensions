@@ -26,8 +26,6 @@ class HomeController extends AbstractController
         $apiService = new ApiService($apiUrl, $apiKey);
         $order = $apiService->getOrderById($id);
 
-//        dump($order);die;
-
         if ($order == null) {
 
             return new Response('Order is null');
@@ -36,9 +34,9 @@ class HomeController extends AbstractController
         $items = $order->items;
 
         $dimensions = [];
-        foreach ($items as $item) {
-            $dimensions[$item->id] = $this->parseDimensions($item->offer->displayName, $logger);
-        }
+        $item = end($items);
+        $dimensions[$item->id] = $this->parseDimensions($item->offer->displayName, $logger);
+
 
         foreach ($dimensions as $dimension) {
             if ($dimension) {
