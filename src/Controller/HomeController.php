@@ -33,12 +33,14 @@ class HomeController extends AbstractController
 
         $items = $order->items;
 
-        $dimensions = [];
-        $item = end($items);
-        $dimensions[$item->id] = $this->parseDimensions($item->offer->displayName, $logger);
+        $itemDimensions = [];
+        foreach ($items as $item) {
+            $itemDimensions[$item->id] = $this->parseDimensions($item->offer->displayName, $logger);
+        }
 
+        $lastItemDimensions = end($itemDimensions);
 
-        foreach ($dimensions as $dimension) {
+        foreach ($lastItemDimensions as $dimension) {
             if ($dimension) {
                 $response = $apiService->setDimensions($order, $dimension);
             }
