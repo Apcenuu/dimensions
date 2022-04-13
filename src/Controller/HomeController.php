@@ -38,6 +38,9 @@ class HomeController extends AbstractController
         $order->customer->firstName = $firstName;
         $order->customer->lastName = $lastName;
 
+        $order->firstName = $firstName;
+        $order->lastName = $lastName;
+
         $order->phone = '+57' . substr($order->phone, -10);
 
         foreach ($order->customer->phones as $phone) {
