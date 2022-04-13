@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Service\ApiService;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,48 +32,47 @@ class HomeController extends AbstractController
             return new Response('Order is null');
         }
 
-        $items = $order->items;
+        $firstName = $this->removeEmoji($order->customer->firstName);
+        $lastName = $this->removeEmoji($order->customer->lastName);
 
-        $itemDimensions = [];
-        foreach ($items as $item) {
-            $itemDimensions[$item->id] = $this->parseDimensions($item->offer->displayName, $logger);
+        $order->customer->firstName = $firstName;
+        $order->customer->lastName = $lastName;
+
+        $order->phone = '+57' . substr($order->phone, -10);
+
+        foreach ($order->customer->phones as $phone) {
+            $cleanPhone = substr($phone->number, -10);
+            $phone->number = '+57' . $cleanPhone;
         }
 
-        $itemDimensions = array_filter($itemDimensions, function ($item) {
-            return $item;
-        });
+        $orderResponse = $apiService->orderEdit($order);
+        $customerResponse = $apiService->customerEdit($order->customer);
 
-        $lastItemDimensions = end($itemDimensions);
-
-        if (count($lastItemDimensions)) {
-            $response = $apiService->setDimensions($order, $lastItemDimensions);
-        }
-
-        if (isset($response->success)) {
-            return new Response($response->success);
-        }
-
-        return new Response('No dimensions');
+        return new JsonResponse([
+            'order' => $orderResponse->success ?? false,
+            'customer' => $customerResponse->success ?? false
+        ]);
     }
 
-    private function parseDimensions($productName, LoggerInterface $logger)
-    {
-        $res = explode('(', $productName);
-        $prodName = array_shift($res);
-        $dimensionsString = array_shift($res);
+    public function removeEmoji(?string $text) {
 
-        $dimensions = explode('x', $dimensionsString);
+        $cleanText = "";
 
+        $regexEmoticons = '/[\x{1F600}-\x{1F64F}]/u';
+        $cleanText = preg_replace($regexEmoticons, '', $text);
 
-        if (count($dimensions) < 3) {
-            $logger->log('error', 'Dimensions not parsed in product name' . $productName, $dimensions);
-            return false;
-        }
+        $regexSymbols = '/[\x{1F300}-\x{1F5FF}]/u';
+        $cleanText = preg_replace($regexSymbols, '', $cleanText);
 
-        foreach ($dimensions as $key => $dimension) {
-            $dimensions[$key] = (int) $dimension;
-        }
+        $regexTransport = '/[\x{1F680}-\x{1F6FF}]/u';
+        $cleanText = preg_replace($regexTransport, '', $cleanText);
 
-        return $dimensions;
+        $regexMisc = '/[\x{2600}-\x{26FF}]/u';
+        $cleanText = preg_replace($regexMisc, '', $cleanText);
+
+        $regexDingbats = '/[\x{2700}-\x{27BF}]/u';
+        $cleanText = preg_replace($regexDingbats, '', $cleanText);
+
+        return $cleanText;
     }
 }

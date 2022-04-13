@@ -2,13 +2,18 @@
 
 namespace App\Service;
 
+use RetailCrm\Api\Client;
 use RetailCrm\Api\Factory\SimpleClientFactory;
+use RetailCrm\Api\Model\Entity\Customers\Customer;
+use RetailCrm\Api\Model\Entity\Orders\Order;
 use RetailCrm\Api\Model\Filter\Orders\OrderFilter;
+use RetailCrm\Api\Model\Request\Customers\CustomersEditRequest;
 use RetailCrm\Api\Model\Request\Orders\OrdersEditRequest;
 use RetailCrm\Api\Model\Request\Orders\OrdersRequest;
 
 class ApiService
 {
+    /** @var Client $client */
     private $client;
 
     public function __construct($apiUrl, $apiKey)
@@ -29,16 +34,21 @@ class ApiService
         return array_shift($order->orders);
     }
 
-    public function setDimensions($order, $dimensionsArray)
+    public function customerEdit(Customer $customer)
+    {
+        $request = new CustomersEditRequest();
+        $request->by = 'id';
+        $request->site = $customer->site;
+        $request->customer = $customer;
+        $response = $this->client->customers->edit($customer->id, $request);
+        return $response;
+    }
+
+    public function orderEdit(Order $order)
     {
         $request = new OrdersEditRequest();
         $request->by = 'id';
         $request->site = $order->site;
-
-        $order->length = $dimensionsArray[0];
-        $order->width = $dimensionsArray[1];
-        $order->height = $dimensionsArray[2];
-
         $request->order = $order;
         $response = $this->client->orders->edit($order->id, $request);
         return $response;
