@@ -6,8 +6,10 @@ use RetailCrm\Api\Client;
 use RetailCrm\Api\Factory\SimpleClientFactory;
 use RetailCrm\Api\Model\Entity\Customers\Customer;
 use RetailCrm\Api\Model\Entity\Orders\Order;
+use RetailCrm\Api\Model\Filter\Customers\CustomerFilter;
 use RetailCrm\Api\Model\Filter\Orders\OrderFilter;
 use RetailCrm\Api\Model\Request\Customers\CustomersEditRequest;
+use RetailCrm\Api\Model\Request\Customers\CustomersRequest;
 use RetailCrm\Api\Model\Request\Orders\OrdersEditRequest;
 use RetailCrm\Api\Model\Request\Orders\OrdersRequest;
 
@@ -21,17 +23,16 @@ class ApiService
         $this->client = SimpleClientFactory::createClient($apiUrl, $apiKey);
     }
 
-    public function getOrderById($id)
+    public function getOrdersByCustomer(Customer $customer)
     {
         $request = new OrdersRequest();
         $filter = new OrderFilter();
-        $filter->ids = [
-            $id
-        ];
+        $filter->customerId = $customer->id;
         $request->filter = $filter;
+        $request->limit = 20;
         $order = $this->client->orders->list($request);
 
-        return array_shift($order->orders);
+        return $order->orders;
     }
 
     public function customerEdit(Customer $customer)
@@ -52,5 +53,15 @@ class ApiService
         $request->order = $order;
         $response = $this->client->orders->edit($order->id, $request);
         return $response;
+    }
+
+    public function getCustomerById($id)
+    {
+        $request = new CustomersRequest();
+        $filter = new CustomerFilter();
+        $filter->ids = [$id];
+        $request->filter = $filter;
+        $response = $this->client->customers->list($request);
+        return array_shift($response->customers);
     }
 }
