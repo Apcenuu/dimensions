@@ -36,9 +36,11 @@ class HomeController extends AbstractController
         $orders = $apiService->getOrdersByCustomer($customer);
         $response = [];
         foreach ($orders as $order) {
-            $order->status = 'procesando-reserva';
-            $orderResponse = $apiService->orderEdit($order);
-            $response[$order->id] = $orderResponse->success ?? false;
+            if ($order->status === 'new') {
+                $order->status = 'procesando-reserva';
+                $orderResponse = $apiService->orderEdit($order);
+                $response[$order->id] = $orderResponse->success ?? false;
+            }
         }
 
         return new JsonResponse($response);
